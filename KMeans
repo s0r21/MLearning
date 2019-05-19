@@ -1,0 +1,25 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.cluster import KMeans
+from sklearn.model_selection import train_test_split
+
+df = pd.read_csv('Mall_Customers.csv')
+df_Kmeans = pd.DataFrame(df, columns = ['Age', 'Annual Income (k$)'])
+
+x_train, x_test, y_train, y_test = train_test_split(df['Age'],
+                                                    df['Annual Income (k$)'],
+                                                    test_size = 0.25,
+                                                    random_state = 0)
+
+kmeans_train = pd.DataFrame(data = [x_train, y_train]).transpose()
+kmeans_test = pd.DataFrame(data = [x_test, y_test]).transpose()
+
+kmeans = KMeans(n_clusters = 6,
+                random_state = 0).fit(kmeans_train)
+labels = kmeans.labels_
+prediction = kmeans.predict(kmeans_test)
+centers = kmeans.cluster_centers_
+
+print(labels) 
+print(prediction) 
+print(centers)
