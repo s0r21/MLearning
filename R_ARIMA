@@ -1,0 +1,86 @@
+install.packages(c('tidyverse', 'forecast', 'Metrics'))
+install.packages('forecast')
+install.packages('Metrics')
+library(tidyverse)
+library(forecast)
+library(Metrics)
+
+# Goal of the this project is as follows: 
+#   1.) Try to build a model that tries to predict the USD/CAD Price. 
+#   2.) ARIMA models on different variables. Once you do the ARIMA on a number of variables (Oil, Gold, SPX, TSX), connected with the CAD/USD (ARIMAX). See what the relationship holds at this point.
+#   3.) Test the model to see the number of successes you've had (% of successes).80% of the data = training, 20% = test set.
+
+# Importing the dataset. Note: Data is on a weekly basis from 2014 - 2019
+USD_CAD <- read.csv('C:/Users/t0ys0r/Downloads/USD_CAD Historical Data.csv')
+WTI <-  read.csv('C:/Users/t0ys0r/Downloads/Crude Oil WTI Futures Historical Data.csv')
+GOLD_USD <-  read.csv('C:/Users/t0ys0r/Downloads/Gold Futures Historical Data.csv')
+SPX_TSX <-  read.csv('C:/Users/t0ys0r/Downloads/S&P_TSX Composite Historical Data.csv')
+SPX <-  read.csv('C:/Users/t0ys0r/Downloads/^GSPC.csv') #1 extra when you see nrow(SPX)
+
+#SPX Manipulation
+SPX <- SPX[-1,] # Extra row in this dataset
+SPX <- SPX %>%
+  mutate(id = (1:261)) %>%
+  arrange(desc(id)) %>%
+  select(Close)
+
+# USD_CAD Manipulation
+USD_CAD <- USD_CAD %>%
+  mutate(id = (1:261)) %>%
+  arrange(desc(id)) %>%
+  select(Price)
+
+# GOLD_USD Manipulation
+GOLD_USD <- GOLD_USD %>%
+  mutate(id = (1:261)) %>%
+  arrange(desc(id)) %>%
+  select(Price)
+
+# SPX_TSX Manipulation
+SPX_TSX <- SPX_TSX %>%
+  mutate(id = (1:261)) %>%
+  arrange(desc(id)) %>%
+  select(Price)
+
+# WTI Manipulation
+WTI <- WTI %>%
+  mutate(id = (1:261)) %>%
+  arrange(desc(id)) %>%
+  select(Price)
+
+# Test & Training Set
+
+# Training Variables [1:210 = 80% of dataset]
+train_USD_CAD <- USD_CAD[1:210,]
+train_GOLD_USD <- GOLD_USD[1:210,]
+train_SPX <- SPX[1:210,]
+train_SPX_TSX <- SPX_TSX[1:210,]
+train_WTI <- WTI[1:210,]
+
+# Training Variables [211:261 = 20% of dataset]
+test_USD_CAD <- USD_CAD[211:261,]
+test_GOLD_USD <- GOLD_USD[211:261,]
+test_SPX <- SPX[211:261,]
+test_SPX_TSX <- SPX_TSX[211:261,]
+test_WTI <- WTI[211:261,]
+
+# Auto Arima of Variables
+ARIMA_USD_CAD <- auto.arima(train_USD_CAD)
+ARIMA_GOLD_USD <- auto.arima(train_GOLD_USD)
+ARIMA_SPX <- auto.arima(train_SPX)
+ARIMA_SPX_TSX <- auto.arima(train_SPX_TSX)
+ARIMA_WTI <- auto.arima(train_WTI)
+
+# Summary of the Models
+summary(ARIMA_USD_CAD) # (0,1,0)
+summary(ARIMA_GOLD_USD) # (0,1,0)
+summary(ARIMA_SPX) # (1,1,0)
+summary(ARIMA_SPX_TSX) # (2,1,2)
+summary(ARIMA_WTI) # (0,2,1)
+
+# Predicting the Results
+forecast_USD_CAD <- predict(ARIMA_USD_CAD,test_USD_CAD, h=30)
+forecast_GOLD_USD <- predict(ARIMA_GOLD_USD,test_GOLD_USD, h=30)
+forecast_SPX <- predict(ARIMA_SPX,test_SPX)
+forecast_SPX_TSX <- predict(ARIMA_SPX_TSX,test_SPX_TSX)
+forecast_WTI <- predict(ARIMA_WTI,test_WTI)
